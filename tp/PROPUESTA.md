@@ -1,57 +1,53 @@
 # TP Desarrollo
 
+Matías Marquez - 51419
+
 ## 1 - Enunciado
 
-Se desarrollará una aplicación web cliente-servidor en Java que permitirá la gestión de jugadores y proyectos dentro del entorno BTE Cono Sur.
+El sistema a desarrollar es una aplicación web cliente-servidor en Java destinada a la 
+gestión de jugadores y proyectos dentro del servidor BTE Cono Sur. 
 
-Build The Earth (BTE) es un proyecto global que busca recrear la Tierra en Minecraft en escala 1:1. Los equipos de Argentina, Chile, Perú, Bolivia, Paraguay y Uruguay comparten un único servidor denominado BTE Cono Sur.
+Build The Earth (BTE) es un proyecto global y colaborativo que busca recrear el planeta Tierra en Minecraft en 
+escala 1:1. El servidor BTE Cono Sur agrupa a los equipos de Argentina, Chile, Perú, 
+Bolivia, Paraguay y Uruguay.
 
-El sistema web permitirá administrar jugadores y proyectos mediante operaciones de alta, baja, modificación y consulta. Además de dejar que los jugadores puedan gestionar las solicitudes de unión a un proyecto.
+La aplicación web permitirá administrar jugadores, proyectos y las solicitudes de unión a 
+proyectos, actuando como interfaz gráfica para las operaciones que el plugin bteCSCore,
+sistema central del servidor de Minecraft, expone a través de su API REST. Toda la lógica 
+de negocio y la persistencia de datos (incluyendo la caché en memoria) son gestionadas por 
+dicho plugin. El sistema web se limita a presentar la información y delegar las operaciones 
+mediante llamadas HTTP.
 
-Un proyecto es una unidad de trabajo dentro del servidor BTE Cono Sur que representa la construcción o desarrollo de una zona específica del mundo en Minecraft. Cada proyecto agrupa a uno o más jugadores que colaboran en una misma área
+Un proyecto es una región poligonal del mundo de Minecraft que representa la construcción 
+de una zona específica. Puede tener un líder, miembros y distintos estados (En Creación, 
+Completado, Abandonado, etc.). Los jugadores tienen tipos (Visitante, Postulante, 
+Constructor) y roles (Usuario, Reviewer, Moderador, Admin), que determinan qué 
+operaciones pueden realizar.
 
-La lógica de negocio y persistencia será gestionada por un servicio externo: el plugin **bteCSCore**, el cual forma parte del servidor de Minecraft y mantiene los datos tanto en base de datos como en memoria mediante un sistema de cache.
+Se ingresa al sistema mediante cuenta de Discord. Por lo que el usuario tiene que haber ingresado 
+al servidor y linkear la cuenta para utilizar la aplicación web.
 
----
-
-## 2 - Contexto del sistema
-
-### BTE Cono Sur
-
-BTE Cono Sur es el servidor que agrupa a los equipos de varios países de Sudamérica dentro del proyecto Build The Earth.
-
-### bteCSCore
-
-bteCSCore es el plugin central del servidor BTE Cono Sur. Provee:
-
-- Gestión de proyectos
-- Sistema de permisos
-- Persistencia de datos
-
----
-
-## 3 - Modelo de dominio
-
-### Entidades
-
-- Jugador
-  - id
-  - nombre
-  - usuario de discord
-
-- Proyecto
-  - id
-  - nombre
-  - descripción
-
-- Participación
-  - id
-  - jugador_id
-  - proyecto_id
+## 2 - Modelo de dominio
+<img width="751" height="901" alt="BD Cono Sur-TP_UTN drawio" src="https://github.com/user-attachments/assets/6595e626-6da6-4088-9a33-d9c6457c64ad" />
 
 ---
+
+Las entidades principales del sistema son:
+- Player: Representa un jugador del servidor.
+-	Proyecto: Unidad de trabajo en el servidor.
+-	Proyecto_Miembro: Relación entre jugadores y proyectos (participación).
+-	Tipo_Usuario: Categorización del jugador según permisos de construcción (Visitante, Postulante, Constructor).
+-	Rango_Usuario: Rol del jugador (Usuario, Reviewer, Moderador, Admin, etc).
+-	Tipo_Proyecto: Categorización del proyecto según tamaño.
+-	País: Determinado por una serie de regiones poligonales.
+-	División: De un país. Determinado por una serie de regiones poligonales. Dependiendo del país recibe un nombre distinto (Provincia, Comuna, Barrio, etc).
 
 ## 4 - Arquitectura
+La arquitectura sigue el esquema cliente-servidor en capas:
+-	Capa de presentación: JSP/JSTL y HTML5/CSS3 (Bootstrap).
+-	Capa de control: Servlets en Apache Tomcat, que reciben las peticiones del browser.
+-	Capa de lógica / acceso a datos: los Servlets se comunican mediante HTTP con la API REST del plugin bteCSCore, que gestiona la base de datos y la caché del servidor de Minecraft.
+
 [ Browser ]
 ->
 [ Servlets (Tomcat) ]
@@ -60,23 +56,19 @@ bteCSCore es el plugin central del servidor BTE Cono Sur. Provee:
 ->
 [ DB ]
 
----
-
 ## 5 - Alcance Funcional
 
 ### 5.1 - Regularidad
 
-#### ABMC simple
-- ABMC de Jugador
+#### ABMC Simples
 
-#### ABMC dependiente
-- ABMC de Proyecto (Depende de un Jugador)
+- *Tipo de Proyecto*: No depende de otras entidades.
 
-#### Caso de Uso NO-ABMC
-- Asignar jugador a proyecto validando que no esté repetido
+---
 
-#### Listado
-- Listado simple de jugadores con sus proyectos
+#### ABMC Dependientes
+
+- *Proyecto*: Depende de Tipo de Proyecto, País y Ciudad. Al ser una región poligonal, para la Alta o Modificación hace falta seleccionar un conjunto de lat,lon.
 
 ---
 
